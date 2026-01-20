@@ -6,11 +6,9 @@ import pickle
 
 st.set_page_config(page_title="NYC Airbnb AI Dashboard", layout="wide")
 
-# ---------------- Load Dataset ----------------
 df = pd.read_csv("AB_NYC_2019.csv")
 df["reviews_per_month"] = df["reviews_per_month"].fillna(0)
 
-# ---------------- Load ML Models ----------------
 value_model = pickle.load(open("airbnb_value_model.pkl", "rb"))
 value_encoder = pickle.load(open("room_encoder.pkl", "rb"))
 
@@ -19,17 +17,14 @@ price_encoder = pickle.load(open("reg_encoder.pkl", "rb"))
 
 kmeans = pickle.load(open("kmeans.pkl", "rb"))
 
-# ---------------- Title ----------------
 st.markdown(
     "<h1 style='text-align:center;color:#ff4b4b;'>🏙 NYC Airbnb AI + Value Dashboard</h1>",
     unsafe_allow_html=True
 )
 
-tabs = st.tabs(["📊 Neighbourhood Value", "🤖 AI Listing Evaluator", "📌 Borough Insights"])
+tabs = st.tabs(["Neighbourhood Value", " AI Listing Evaluator", "Borough Insights"])
 
-# =====================================================================
-# TAB 1 — VALUE DASHBOARD
-# =====================================================================
+
 with tabs[0]:
 
     st.sidebar.header("Filters")
@@ -89,16 +84,14 @@ with tabs[0]:
 
     col1, col2 = st.columns(2)
 
-    col1.subheader("💎 Top Value Areas")
+    col1.subheader(" Top Value Areas")
     col1.dataframe(neigh.sort_values("value_score", ascending=False).head(10))
 
-    col2.subheader("🚨 Lowest Value Areas")
+    col2.subheader(" Lowest Value Areas")
     col2.dataframe(neigh.sort_values("value_score").head(10))
 
 
-# =====================================================================
-# TAB 2 — AI LISTING EVALUATOR
-# =====================================================================
+
 with tabs[1]:
 
     st.subheader("Enter Listing Details")
@@ -117,31 +110,29 @@ with tabs[1]:
     room_val = value_encoder.transform([room])[0]
     room_reg = price_encoder.transform([room])[0]
 
-    if st.button("Run AI Analysis 🔮"):
+    if st.button("Run AI Analysis "):
 
-        st.markdown("### 💎 Value Classification")
+        st.markdown("###  Value Classification")
         val = value_model.predict(
             [[price, availability, reviews, min_nights, room_val]]
         )[0]
         st.success("High Value Listing" if val == 1 else "Low Value / Overpriced")
 
-        st.markdown("### 📈 Fair Price Prediction")
+        st.markdown("###  Fair Price Prediction")
         pred_price = price_model.predict(
             [[availability, reviews, min_nights, room_reg]]
         )[0]
         st.info(f"Estimated Fair Price: ${round(pred_price, 2)}")
 
-        st.markdown("### 🧠 Market Segment")
+        st.markdown("###  Market Segment")
         cluster = kmeans.predict([[price, availability, reviews]])[0]
         st.warning(f"Listing belongs to Cluster {cluster}")
 
 
-# =====================================================================
-# TAB 3 — BOROUGH INSIGHTS
-# =====================================================================
+
 with tabs[2]:
 
-    st.subheader("📌 Borough Level Insights")
+    st.subheader(" Borough Level Insights")
 
     borough_stats = df.groupby("neighbourhood_group").agg({
         "price": "mean",
